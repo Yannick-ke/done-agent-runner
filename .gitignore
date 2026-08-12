@@ -1,0 +1,26 @@
+# Runtime data: task prompts, Claude responses, session IDs, diffs, logs,
+# SQLite databases, generated worktrees and local absolute paths.
+/data/
+
+# Dependencies and test/build output.
+/node_modules/
+/coverage/
+/.nyc_output/
+/dist/
+
+# Local environment overrides. Keep the public template tracked.
+.env
+.env.*
+!.env.example
+
+# Local Claude Code and editor settings.
+.claude/settings.local.json
+.vscode/
+.idea/
+
+# OS, logs and temporary files.
+.DS_Store
+*.log
+*.tmp
+*.swp
+*~
