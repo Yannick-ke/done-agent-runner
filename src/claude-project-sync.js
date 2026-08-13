@@ -78,12 +78,14 @@ export async function syncClaudeHistoryProjects({
     try {
       const validated = await validatePath(candidate);
       const root = normalized(validated.root);
-      const gitDirectory = fs.statSync(path.join(root, '.git'), { throwIfNoEntry: false });
+      if (validated.kind !== 'directory') {
+        const gitDirectory = fs.statSync(path.join(root, '.git'), { throwIfNoEntry: false });
 
-      // 子目录归并到所属仓库；.git 为文件的 Git Worktree 不作为独立项目同步。
-      if (!gitDirectory?.isDirectory()) {
-        result.ignored += 1;
-        continue;
+        // Git 子目录归并到所属仓库；.git 为文件的 Worktree 不作为独立项目同步。
+        if (!gitDirectory?.isDirectory()) {
+          result.ignored += 1;
+          continue;
+        }
       }
       if (handledRoots.has(root)) continue;
       handledRoots.add(root);

@@ -65,6 +65,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); box-sha
 .hint { color: var(--muted); font-size: 13px; margin: -8px 0 0; }
 .alert { border-radius: 12px; padding: 16px 18px; margin: 18px 0; overflow: auto; }
 .alert.danger { background: #f8e6e3; color: #702820; border: 1px solid #e9c6c1; }
+.alert.warning { background: #fff6df; color: #684a14; border: 1px solid #ead59b; }
+.project-mode-warning { margin-bottom: 22px; }
+.project-mode-warning h2 { margin-bottom: 8px; color: #684a14; }
+.project-mode-warning p { margin-bottom: 10px; }
+.project-mode-warning ul { margin: 8px 0 12px; padding-left: 22px; }
+.project-mode-warning code { padding: 2px 5px; border-radius: 5px; background: rgba(104,74,20,.1); }
+.project-mode-warning .warning-emphasis { margin-bottom: 0; font-weight: 700; }
+.git-init-question { margin: 14px 0; padding: 14px 16px; border-radius: 10px; background: rgba(255,255,255,.55); border: 1px solid rgba(104,74,20,.18); }
+.git-init-question h3 { margin: 0 0 6px; font-size: 16px; color: #684a14; }
+.git-init-question p { margin: 0; }
+.project-form-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .task-header { display: flex; justify-content: space-between; gap: 32px; margin-bottom: 34px; }
 .task-header h1 { font-size: clamp(30px, 4vw, 48px); margin: 16px 0; }
 .task-header p { white-space: pre-wrap; color: var(--muted); font-size: 17px; max-width: 800px; }

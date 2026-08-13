@@ -187,7 +187,7 @@ function workspaceNavigation({ projects, selectedProject, syncNotice = null, pro
       ${Number(project.attention_count || 0) ? `<span class="attention-dot" title="有任务需要处理">${Number(project.attention_count)}</span>` : ''}
     </a>`).join('') : isSearching ? `
       <div class="sidebar-empty compact search-empty"><p>没有找到相关项目</p><span>试试项目名称或本地路径。</span><a href="${escapeHtml(projectListMeta.clearHref)}">清空搜索</a></div>` : `
-      <div class="sidebar-empty compact"><p>还没有项目</p><span>添加一个本地 Git 仓库。</span></div>`;
+      <div class="sidebar-empty compact"><p>还没有项目</p><span>添加一个本地 Git 仓库或普通目录。</span></div>`;
 
   return `
     <aside class="workspace-column project-sidebar">
@@ -344,18 +344,41 @@ export function projectPage(project, tasks = [], projects = [project]) {
   return workbenchPage({ projects, selectedProject: project, tasks, selectedTask: null });
 }
 
-export function newProjectPage(error = '', values = {}) {
+export function newProjectPage(error = '', values = {}, projectInfo = null) {
+  const directoryWarning = projectInfo?.kind === 'directory';
+  const canInitializeGit = directoryWarning && projectInfo?.gitAvailable === true;
   return layout('添加项目', `
     <section class="narrow">
       <a class="back" href="/projects">← 返回项目</a>
-      <p class="eyebrow">项目</p><h1>添加本地 Git 项目</h1>
-      <p class="lead">只保存项目路径。每个任务会在独立 Git Worktree 中执行，不直接修改当前目录。</p>
+      <p class="eyebrow">项目</p><h1>添加本地项目</h1>
+      <p class="lead">只保存项目路径。Git 项目使用独立 Worktree，普通目录使用隔离副本；都不会直接修改项目中的工作文件。</p>
       ${error ? `<div class="alert danger">${escapeHtml(error)}</div>` : ''}
+      ${directoryWarning ? `<section class="alert warning project-mode-warning" role="alert">
+        <h2>这是一个普通目录，不是 Git 项目</h2>
+        <p>检测到该路径下没有 Git 仓库。两种项目的主要区别：</p>
+        <ul>
+          <li><strong>Git 项目：</strong>每个任务使用独立 Worktree 和任务分支，后续可以基于 Git Diff 合并回主分支。</li>
+          <li><strong>普通目录：</strong>每个任务会复制一份隔离快照并在副本中执行，原目录不会被直接修改，任务结果也不会自动写回原目录。</li>
+        </ul>
+        ${canInitializeGit ? `
+          <div class="git-init-question">
+            <h3>是否创建为 Git 项目？</h3>
+            <p>已检测到电脑安装了 Git。选择“是”后，Done 会在此目录执行 Git 初始化，将当前文件加入版本控制并创建一次初始提交，然后按 Git 项目保存。</p>
+          </div>` : `
+          <p>当前电脑没有检测到可用的 Git，因此不能自动初始化。你仍然可以按普通目录模式创建项目，但任务详情将无法生成 Git Diff。</p>`}
+        <p class="warning-emphasis">${canInitializeGit ? '请选择初始化为 Git 项目，或继续使用普通目录模式。' : 'Done 会按普通目录模式为任务创建隔离副本。'}</p>
+      </section>` : ''}
       <form class="form panel" method="post" action="/projects">
         <label>项目名称<input name="name" required maxlength="80" placeholder="例如：广州联通项目数据抓取" value="${escapeHtml(values.name || '')}"></label>
         <label>项目绝对路径<input name="path" required placeholder="/Users/you/Projects/my-app" value="${escapeHtml(values.path || '')}"></label>
-        <p class="hint">目前只支持已有 Git 仓库，并要求仓库位于普通分支。</p>
-        <button class="button" type="submit">保存项目</button>
+        <p class="hint">支持已有 Git 仓库和普通目录。普通目录会为每个任务复制一份隔离快照，结果不会自动写回原目录。</p>
+        <div class="project-form-actions">
+          ${directoryWarning ? '<a class="button ghost" href="/projects/new">返回修改路径</a>' : ''}
+          ${canInitializeGit ? `
+            <button class="button ghost" type="submit" name="confirm_directory" value="1">否，作为普通目录创建</button>
+            <button class="button" type="submit" name="initialize_git" value="1">是，初始化为 Git 项目</button>` : `
+            <button class="button" type="submit" ${directoryWarning ? 'name="confirm_directory" value="1"' : ''}>${directoryWarning ? '确认创建普通目录项目' : '检测并保存项目'}</button>`}
+        </div>
       </form>
     </section>`);
 }

@@ -461,6 +461,27 @@ test('standalone forms keep only a minimal Done navigation bar', () => {
   assert.doesNotMatch(html, /面向结果的软件任务执行工具|<nav>/);
 });
 
+test('new project form offers Git initialization when Git is installed', () => {
+  const html = newProjectPage('', { name: '普通项目', path: '/tmp/plain-project' }, { kind: 'directory', gitAvailable: true });
+  assert.match(html, /这是一个普通目录，不是 Git 项目/);
+  assert.match(html, /Git 项目：/);
+  assert.match(html, /普通目录：/);
+  assert.match(html, /结果也不会自动写回原目录/);
+  assert.match(html, /是否创建为 Git 项目？/);
+  assert.match(html, /name="initialize_git" value="1"/);
+  assert.match(html, /是，初始化为 Git 项目/);
+  assert.match(html, /name="confirm_directory" value="1"/);
+  assert.match(html, /否，作为普通目录创建/);
+});
+
+test('new project form falls back to ordinary-directory confirmation without Git', () => {
+  const html = newProjectPage('', { name: '普通项目', path: '/tmp/plain-project' }, { kind: 'directory', gitAvailable: false });
+  assert.match(html, /没有检测到可用的 Git/);
+  assert.doesNotMatch(html, /name="initialize_git"/);
+  assert.match(html, /name="confirm_directory" value="1"/);
+  assert.match(html, /确认创建普通目录项目/);
+});
+
 test('workbench renders lightweight project search and keeps its query in navigation', () => {
   const project = { id: 'project_1', name: 'Claude 工具', path: '/tmp/claude-tool', task_count: 1 };
   const html = homePage({

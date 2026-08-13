@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { config } from './config.js';
 import { createProject, createTask, createTaskRun, getProject, getTask, listProjects, listTaskRuns, listTasksByProject, recoverInterruptedTasks, renameProject, renameTask, updateTask } from './db.js';
-import { validateProjectPath } from './git.js';
+import { initializeGitProject, validateProjectPath } from './git.js';
 import { cancelTask, startRunner, stopRunner, tick } from './runner.js';
 import { homePage, newProjectPage, newTaskPage, notFoundPage, projectConversationPage } from './views.js';
 import { getProjectClaudeConversation, listProjectClaudeConversations } from './claude-history.js';
@@ -99,6 +99,14 @@ async function handler(req, res) {
         const validated = await validateProjectPath(form.path || '');
         const name = String(form.name || path.basename(validated.root)).trim();
         if (!name) throw new Error('请输入项目名称。');
+        if (validated.kind === 'directory' && form.initialize_git === '1') {
+          const initialized = await initializeGitProject(validated.root);
+          const project = createProject({ name, projectPath: initialized.root });
+          return redirect(res, `/projects/${project.id}`);
+        }
+        if (validated.kind === 'directory' && form.confirm_directory !== '1') {
+          return send(res, 200, newProjectPage('', { name, path: validated.root }, validated));
+        }
         const project = createProject({ name, projectPath: validated.root });
         return redirect(res, `/projects/${project.id}`);
       } catch (error) {
